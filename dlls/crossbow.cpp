@@ -178,11 +178,8 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		}
 	}
 
-	if( g_pGameRules->IsMultiplayer() )
-	{
 		SetThink( &CCrossbowBolt::ExplodeThink );
 		pev->nextthink = gpGlobals->time + 0.1f;
-	}
 }
 
 void CCrossbowBolt::BubbleThink( void )
@@ -396,7 +393,7 @@ void CCrossbow::FireBolt()
 
 	CheckOutOfAmmo();
 
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.75f );
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.15f );
 
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75f;
 

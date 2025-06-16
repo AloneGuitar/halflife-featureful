@@ -151,8 +151,8 @@ void CSniperrifle::PrimaryAttack()
 	Vector vecDir;
 
 	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_762, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	m_flNextPrimaryAttack = 1.75f;
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usSniper, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, Emptied() ? 1 : 0, 0, 0, 0 );
+	m_flNextPrimaryAttack = 0.25f;
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usSniper, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, Emptied() ? 1 : 0, 0, 0, 0 );
 
 	CheckOutOfAmmo();
 
@@ -172,14 +172,14 @@ void CSniperrifle::Reload( void )
 
 	if (Emptied())
 	{
-		DefaultClipReload( SNIPER_RELOAD1, 80.0f / 34.0f );
+		DefaultClipReload(SNIPER_RELOAD1, 80.0f / 34.0f);
 		m_fInSpecialReload = 1;
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.25;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.8;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.25;
 	}
 	else
 	{
-		DefaultClipReload( SNIPER_RELOAD3, 2.25f );
+		DefaultClipReload(SNIPER_RELOAD3, 2.25f);
 	}
 }
 void CSniperrifle::WeaponIdle( void )
@@ -195,7 +195,7 @@ void CSniperrifle::WeaponIdle( void )
 	{
 		m_fInSpecialReload = 0;
 		SendWeaponAnim( SNIPER_RELOAD2 );
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 49.0f / 27.0f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 35.5f / 27.0f;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 49.0f / 27.0f;
 	}
 	else

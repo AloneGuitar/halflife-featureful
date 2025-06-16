@@ -339,8 +339,7 @@ void CRpg::Reload( void )
 	//
 	// Set the next attack time into the future so that WeaponIdle will get called more often
 	// than reload, allowing the RPG LTD to be updated
-	
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.5f );
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.5f);
 
 	if( m_cActiveRockets && m_fSpotActive )
 	{
@@ -356,6 +355,8 @@ void CRpg::Reload( void )
 		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 2.1f;
 	}
 #endif
+
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.5f);
 
 	bool iResult = false;
 	if( m_iClip < iMaxClip() )
@@ -465,41 +466,49 @@ void CRpg::Holster()
 
 void CRpg::PrimaryAttack()
 {
-	if( HasAmmoToFire() )
+	if (!HasAmmoToFire())
 	{
-		m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
-		m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+		if (m_fFireOnEmpty)
+		{
+			PlayEmptySound();
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
+		}
+
+		return;
+	}
+
+	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
 
 #if !CLIENT_DLL
-		// player "shoot" animation
-		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16.0f + gpGlobals->v_right * 8.0f + gpGlobals->v_up * -8.0f;
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16.0f + gpGlobals->v_right * 8.0f + gpGlobals->v_up * -8.0f;
 
-		CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this );
+	CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
+	pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+
+	if (!(m_fSpotActive && m_pSpot))
+		pRocket->pev->nextthink = 0.01f;
 #endif
 
-		// firing RPG no longer turns on the designator. ALT fire is a toggle switch for the LTD.
-		// Ken signed up for this as a global change (sjb)
+	// firing RPG no longer turns on the designator. ALT fire is a toggle switch for the LTD.
+	// Ken signed up for this as a global change (sjb)
 
-		PLAYBACK_EVENT( PlaybackFlags(), m_pPlayer->edict(), m_usRpg );
+	PLAYBACK_EVENT( PlaybackFlags(), m_pPlayer->edict(), m_usRpg );
 
-		SpendAmmo();
+	SpendAmmo();
 
-		m_flNextPrimaryAttack = GetNextAttackDelay( 1.5f );
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5f;
+	CheckOutOfAmmo();
 
-		ResetEmptySound();
-	}
-	else
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.2f;
-	}
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.5f );
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5f;
+
+	ResetEmptySound();
 	UpdateSpot();
 }
 

@@ -74,7 +74,12 @@ bool CKnife::AddToPlayer( CBasePlayer *pPlayer )
 bool CKnife::Deploy()
 {
 	m_iSwingMode = 0;
-	return DefaultDeploy("models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW, "crowbar");
+	int r = DefaultDeploy("models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW, "crowbar");
+	if (r)
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.01;
+	}
+	return r;
 }
 
 void CKnife::Holster()
@@ -86,6 +91,11 @@ void CKnife::Holster()
 
 void CKnife::PrimaryAttack()
 {
+	if (m_pPlayer->m_afButtonLast & IN_ATTACK)
+	{
+		return;
+	}
+
 	if (!m_iSwingMode && !Swing(1))
 	{
 #if !CLIENT_DLL
@@ -97,6 +107,7 @@ void CKnife::PrimaryAttack()
 
 void CKnife::SecondaryAttack()
 {
+	/*
 	if (m_iSwingMode != 1)
 	{
 		SendWeaponAnim(KNIFE_CHARGE);
@@ -105,6 +116,12 @@ void CKnife::SecondaryAttack()
 	m_iSwingMode = 1;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.3f;
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+	*/
+	Stab();
+
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;
 }
 
 void CKnife::Smack()
@@ -162,8 +179,8 @@ bool CKnife::Swing(bool fFirst)
 		if (fFirst)
 		{
 			// miss
-			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
-			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1;
+			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
 			// player "shoot" animation
 			m_pPlayer->SetAnimation(PLAYER_ATTACK1);
@@ -210,14 +227,14 @@ bool CKnife::Swing(bool fFirst)
 #endif
 			{
 				// first swing does full damage
-				flDamage = gSkillData.plrDmgKnife;
+				flDamage = gSkillData.plrDmgKnife * 2.0f;
 			}
 			else
 			{
 				// subsequent swings do half
-				flDamage = gSkillData.plrDmgKnife * 0.5f;
+				flDamage = gSkillData.plrDmgKnife * 2.0f;
 			}
-			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{ flDamage, DMG_ENERGYBEAM }, gpGlobals->v_forward, &tr);
 
 			if( pEntity->HasFlesh() )
 			{
@@ -234,7 +251,7 @@ bool CKnife::Swing(bool fFirst)
 				m_pPlayer->m_iWeaponVolume = KNIFE_BODYHIT_VOLUME;
 				if( !pEntity->IsAlive() )
 				{
-					m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
+					m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
 					return true;
 				}
 				else
@@ -279,8 +296,8 @@ bool CKnife::Swing(bool fFirst)
 		SetThink(&CKnife::Smack);
 		pev->nextthink = gpGlobals->time + 0.2f;
 #endif
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25f;
-		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
 	}
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;
@@ -338,11 +355,9 @@ void CKnife::Stab()
 
 		if( pEntity )
 		{
-			float flDamage = (gpGlobals->time - m_flStabStart) * gSkillData.plrDmgKnife + gSkillData.plrDmgKnife*2.0f;
-			if (flDamage > 100.0f) {
-				flDamage = 100.0f;
-			}
-			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo(flDamage, DMG_CLUB).SetGibPolicy(GIB_NEVER), gpGlobals->v_forward, &tr);
+			float flDamage = gSkillData.plrDmgKnife * 6.0f;
+
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo(flDamage, DMG_ENERGYBEAM), gpGlobals->v_forward, &tr);
 		}
 
 		// play thwack, smack, or dong sound

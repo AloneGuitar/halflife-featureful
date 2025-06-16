@@ -78,16 +78,21 @@ bool CGlock::Deploy()
 
 void CGlock::SecondaryAttack( void )
 {
-	GlockFire( 0.1f, 0.2f, false );
+	GlockFire( 0.01f, 0.07f, false );
 }
 
 void CGlock::PrimaryAttack( void )
 {
-	GlockFire( 0.01f, 0.3f, true );
+	GlockFire( 0.01f, 0.07f, true );
 }
 
 void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim )
 {
+	if ( m_pPlayer->m_afButtonLast & IN_ATTACK && fUseAutoAim )
+	{
+		return;
+	}
+
 	if( !HasAmmoToFire() )
 	{
 		if( m_fFireOnEmpty )
@@ -122,19 +127,12 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim )
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming;
 
-	if( fUseAutoAim )
-	{
-		vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-	}
-	else
-	{
-		vecAiming = gpGlobals->v_forward;
-	}
+	vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, Emptied() ? 1 : 0, 0 );
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, Emptied() ? 1 : 0, 0 );
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay( flCycleTime );
 

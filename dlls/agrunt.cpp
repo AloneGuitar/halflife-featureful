@@ -28,6 +28,7 @@
 #include	"scripted.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
+#include	"gamerules.h"
 
 //=========================================================
 // monster-specific schedule types
@@ -101,6 +102,7 @@ public:
 	bool ShouldSpeak( void );
 	void PlayUseSentence();
 	void PlayUnUseSentence();
+	void OnDying(bool gibbed) override;
 	CUSTOM_SCHEDULES
 
 	virtual int Save( CSave &save );
@@ -1177,6 +1179,23 @@ void CAGrunt::PlayUnUseSentence()
 {
 	EmitSoundScript(unuseSoundScript);
 	StopTalking();
+}
+
+void CAGrunt::OnDying(bool gibbed)
+{
+	if (g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
+	{
+		// drop the gun!
+		Vector vecGunPos;
+		Vector vecGunAngles;
+
+		pev->body = 1;
+
+		GetAttachment(0, vecGunPos, vecGunAngles);
+
+		DropItem("weapon_hornetgun", vecGunPos, vecGunAngles);
+	}
+	CFollowingMonster::OnDying(bool gibbed);
 }
 
 class CDeadAgrunt : public CDeadMonster

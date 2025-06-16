@@ -982,8 +982,8 @@ bool CBasePlayerWeapon::DefaultDeploy( const char *szViewModel, const char *szWe
 	strcpy( m_pPlayer->m_szAnimExtention, szAnimExt );
 	SendWeaponAnim( iAnim, body );
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.1f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0f;
 	m_flLastFireTime = 0.0f;
 
 	return true;

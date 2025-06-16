@@ -1261,7 +1261,7 @@ void UTIL_BloodStream( const Vector &origin, const Vector &direction, int color,
 	MESSAGE_END();
 }				
 
-void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount )
+void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount, float scale_mult )
 {
 	if( color == DONT_BLEED || amount == 0 )
 		return;
@@ -1284,7 +1284,7 @@ void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, 
 		WRITE_SHORT( g_sModelIndexBloodSpray );				// initial sprite model
 		WRITE_SHORT( g_sModelIndexBloodDrop );				// droplet sprite models
 		WRITE_BYTE( color );								// color index into host_basepal
-		WRITE_BYTE( Q_min( Q_max( 3, amount / 10 ), 16 ) );		// size
+		WRITE_BYTE( Q_min( Q_max( 3, amount / 10 ), 16 ) * scale_mult );		// size
 	MESSAGE_END();
 }				
 

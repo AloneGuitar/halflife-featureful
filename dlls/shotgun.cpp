@@ -128,18 +128,18 @@ void CShotgun::PrimaryAttack()
 	else
 	{
 		// regular old, untouched spread. 
-		vecDir = m_pPlayer->FireBulletsPlayer( 6, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 9, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usSingleFire, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usSingleFire, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	CheckOutOfAmmo();
 
 	//if( m_iClip != 0 )
 		m_flPumpTime = gpGlobals->time + 0.5f;
 
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.75f );
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75f;
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.15f );
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15f;
 	if( !Emptied() )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;
 	else
@@ -157,7 +157,7 @@ void CShotgun::SecondaryAttack( void )
 		return;
 	}
 
-	if( !HasAmmoToFire(2) )
+	if( !HasAmmoToFire(3) )
 	{
 		Reload();
 		PlayEmptySound();
@@ -167,7 +167,7 @@ void CShotgun::SecondaryAttack( void )
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	SpendAmmo(2);
+	SpendAmmo(3);
 
 	m_pPlayer->pev->effects = (int)( m_pPlayer->pev->effects ) | EF_MUZZLEFLASH;
 
@@ -187,18 +187,18 @@ void CShotgun::SecondaryAttack( void )
 	else
 	{
 		// untouched default single player
-		vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 27, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usDoubleFire, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usDoubleFire, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	CheckOutOfAmmo();
 
 	//if( m_iClip != 0 )
 		m_flPumpTime = gpGlobals->time + 0.95f;
 
-	m_flNextPrimaryAttack = GetNextAttackDelay( 1.5f );
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5f;
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.45f );
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.45f;
 	if( !Emptied() )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.0f;
 	else
@@ -213,18 +213,20 @@ void CShotgun::Reload( void )
 		return;
 
 	// don't reload until recoil is done
+	/*
 	if( m_flNextPrimaryAttack > UTIL_WeaponTimeBase() )
 		return;
+	*/
 
 	// check to see if we're ready to reload
 	if( m_fInSpecialReload == 0 )
 	{
 		SendWeaponAnim( SHOTGUN_START_RELOAD );
 		m_fInSpecialReload = 1;
-		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.6f;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.6f;
-		m_flNextPrimaryAttack = GetNextAttackDelay( 1.0f );
-		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0f;
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5f;
+		m_flNextPrimaryAttack = GetNextAttackDelay( 0.4f );
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.4f;
 		return;
 	}
 	else if( m_fInSpecialReload == 1 )
@@ -241,14 +243,29 @@ void CShotgun::Reload( void )
 
 		SendWeaponAnim( SHOTGUN_RELOAD );
 
-		m_flNextReload = UTIL_WeaponTimeBase() + 0.5f;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5f;
+		m_flNextReload = UTIL_WeaponTimeBase() + 0.2f;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
 	}
 	else
 	{
 		// Add them to the clip
-		m_iClip += 1;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 1;
+		if (m_iClip <= m_iMaxClip - 3 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= 3)
+		{
+			m_iClip += 3;
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 3;
+		}
+		else
+		if (m_iClip <= m_iMaxClip - 2 && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= 2)
+		{
+			m_iClip += 2;
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
+		}
+		else
+		{
+			m_iClip += 1;
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 1;
+		}
+
 		m_fInSpecialReload = 1;
 	}
 }

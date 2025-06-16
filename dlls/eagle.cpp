@@ -38,7 +38,7 @@ void CEagle::Spawn( void )
 
 	InitDefaultAmmo(EAGLE_DEFAULT_GIVE);
 	InitMaxClip(EAGLE_MAX_CLIP);
-	m_fEagleLaserActive = 0;
+	m_fEagleLaserActive = 1;
 	m_pEagleLaser = 0;
 
 	FallInit();// get ready to fall down.
@@ -53,7 +53,6 @@ void CEagle::Precache( void )
 	PrecachePModel("models/p_desert_eagle.mdl");
 	m_iShell = PRECACHE_MODEL ("models/shell.mdl");// brass shell
 
-	PRECACHE_SOUND ("weapons/desert_eagle_reload.wav");
 	PRECACHE_SOUND ("weapons/desert_eagle_fire.wav");
 	PRECACHE_SOUND ("weapons/desert_eagle_sight.wav");
 	PRECACHE_SOUND ("weapons/desert_eagle_sight2.wav");
@@ -117,6 +116,11 @@ void CEagle::SecondaryAttack()
 
 void CEagle::PrimaryAttack()
 {
+	if (m_pPlayer->m_afButtonLast & IN_ATTACK)
+	{
+		return;
+	}
+
 	if (!HasAmmoToFire())
 	{
 		if (m_fFireOnEmpty)
@@ -155,20 +159,19 @@ void CEagle::PrimaryAttack()
 	if (m_fEagleLaserActive)
 	{
 		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_EAGLE, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
 #if !CLIENT_DLL
 		if (m_pEagleLaser)
-			m_pEagleLaser->Suspend( 0.6f );
+			m_pEagleLaser->Suspend( 0.25f );
 #endif
 	}
 	else
 	{
-		flSpread = 0.1;
 		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector(flSpread, flSpread, flSpread), 8192, BULLET_PLAYER_EAGLE, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.22f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
 	}
 
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usEagle, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, Emptied() ? 1 : 0, 0 );
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usEagle, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, Emptied() ? 1 : 0, 0 );
 
 	CheckOutOfAmmo();
 
@@ -189,7 +192,7 @@ void CEagle::Reload( void )
 		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5f;
 	}
 
-	bool result;
+	int result;
 
 	if (Emptied())
 		result = DefaultClipReload( EAGLE_RELOAD, 1.5f );

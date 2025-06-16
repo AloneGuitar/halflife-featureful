@@ -30,6 +30,7 @@
 #include	"game.h"
 #include	"common_soundscripts.h"
 #include	"visuals_utils.h"
+#include	"gamerules.h"
 
 #define bits_MEMORY_ISLAVE_PROVOKED bits_MEMORY_CUSTOM1
 #define bits_MEMORY_ISLAVE_REVIVED bits_MEMORY_CUSTOM2
@@ -92,6 +93,7 @@ constexpr Color3 VortigauntBeamLightColor = Color3(255, 180, 96);
 #define ISLAVE_ELECTROONLY	(1 << 0)
 #define ISLAVE_SNARKS		(1 << 1)
 #define ISLAVE_HEADCRABS	(1 << 2)
+#define ISLAVE_PENGUINS	(1 << 4)
 
 #define ISLAVE_COIL_ATTACK_RADIUS 196
 
@@ -480,6 +482,11 @@ public:
 		} else if (pev->weapons & ISLAVE_HEADCRABS) {
 			return "monster_headcrab";
 		}
+#if FEATURE_PENGUIN
+		else if (pev->weapons & ISLAVE_PENGUINS) {
+			return "monster_penguin";
+		}
+#endif
 		return NULL;
 	}
 
@@ -495,6 +502,9 @@ public:
 			return pev->origin + gpGlobals->v_forward * 36 + Vector(0,0,20);
 		} else if (pev->weapons & ISLAVE_HEADCRABS) {
 			return pev->origin + gpGlobals->v_forward * 48 + Vector(0,0,20);
+		}
+		else if (pev->weapons & ISLAVE_PENGUINS) {
+			return pev->origin + gpGlobals->v_forward * 36 + Vector(0, 0, 20);
 		}
 		return pev->origin + gpGlobals->v_forward * 36 + Vector(0,0,20);
 	}
@@ -881,7 +891,24 @@ void CISlave::OnDying(bool gibbed)
 	ClearBeams();
 	RemoveHandGlows();
 	RemoveChargeToken();
-	CFollowingMonster::OnDying(gibbed);
+
+	if (g_pGameRules->FMonsterCanDropWeapons(this) && !FBitSet(pev->spawnflags, SF_MONSTER_DONT_DROP_GUN))
+	{
+		// drop the gun!
+		Vector vecGunPos;
+		Vector vecGunAngles;
+
+		GetBonePosition(0, vecGunPos, vecGunAngles);
+
+		if (FBitSet(pev->weapons, ISLAVE_SNARKS))
+			DropItem("weapon_snark", vecGunPos, vecGunAngles);
+#if FEATURE_PENGUIN
+		if (FBitSet(pev->weapons, ISLAVE_PENGUINS))
+			DropItem("weapon_penguin", vecGunPos, vecGunAngles);
+#endif
+	}
+
+	CFollowingMonster::OnDying(bool gibbed);
 }
 
 //=========================================================
@@ -1435,6 +1462,19 @@ void CISlave::Spawn()
 	FollowingMonsterInit();
 
 	m_originalMaxHealth = pev->max_health;
+
+	switch (RANDOM_LONG(0, 2))
+	{
+		case 0:
+			pev->weapons = ISLAVE_SNARKS;
+			break;
+		case 1:
+			pev->weapons = ISLAVE_HEADCRABS;
+			break;
+		case 2:
+			pev->weapons = ISLAVE_PENGUINS;
+			break;
+	}
 
 #if FEATURE_ISLAVE_ENERGY
 	// leader starts with some energy pool
@@ -2212,7 +2252,7 @@ int CISlave::HealOther(CBaseEntity *pEntity)
 bool CISlave::CanSpawnFamiliar()
 {
 #if FEATURE_ISLAVE_FAMILIAR
-	if ((pev->weapons & (ISLAVE_SNARKS | ISLAVE_HEADCRABS)) != 0) {
+	if ((pev->weapons & (ISLAVE_SNARKS | ISLAVE_HEADCRABS | ISLAVE_PENGUINS)) != 0) {
 		if (!HasMemory(bits_MEMORY_ISLAVE_FAMILIAR_IS_ALIVE) && m_flSpawnFamiliarTime < gpGlobals->time) {
 			return true;
 		}

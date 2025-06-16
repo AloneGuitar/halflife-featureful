@@ -110,7 +110,7 @@ void CM249::PrimaryAttack()
 		return;
 	}
 
-	if (!HasAmmoToFire())
+	if (!HasAmmoToFire(2))
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
@@ -123,7 +123,7 @@ void CM249::PrimaryAttack()
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	SpendAmmo();
+	SpendAmmo(2);
 	UpdateTape();
 	m_bAlternatingEject = !m_bAlternatingEject;
 	m_pPlayer->pev->effects |= EF_MUZZLEFLASH;
@@ -173,7 +173,7 @@ void CM249::PrimaryAttack()
 		}
 	}
 
-	Vector vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, vecSpread, 8192, BULLET_PLAYER_556, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+	Vector vecDir = m_pPlayer->FireBulletsPlayer(2, vecSrc, vecAiming, vecSpread, 8192, BULLET_PLAYER_556, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
 	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usM249, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, pev->body, m_bAlternatingEject ? 1 : 0, 0);
 
@@ -210,16 +210,20 @@ void CM249::PrimaryAttack()
 		{
 			vecNewVel.y -= vecInvPushDir.y;
 		}
+		if (vecVelocity.z > flZTreshold)
+		{
+			vecNewVel.z -= vecInvPushDir.z;
+		}
 	}
 	m_pPlayer->pev->velocity = vecNewVel;
 #endif
 
 	CheckOutOfAmmo();
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.067f);
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.05f);
 
 	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase())
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.067f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.05f;
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.2f;
 }

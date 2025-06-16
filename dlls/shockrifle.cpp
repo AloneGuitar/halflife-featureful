@@ -57,7 +57,6 @@ void CShockrifle::Precache(void)
 	PrecachePModel("models/p_shock.mdl");
 
 	PRECACHE_SOUND("weapons/shock_discharge.wav");
-	PRECACHE_SOUND("weapons/shock_draw.wav");
 	PRECACHE_SOUND("weapons/shock_fire.wav");
 	PRECACHE_SOUND("weapons/shock_impact.wav");
 	PRECACHE_SOUND("weapons/shock_recharge.wav");
@@ -111,7 +110,7 @@ bool CShockrifle::Deploy()
 	if( bIsMultiplayer() )
 		m_flRechargeTime = gpGlobals->time + 0.25;
 	else
-		m_flRechargeTime = gpGlobals->time + 0.5;
+		m_flRechargeTime = gpGlobals->time + 0.25;
 
 	return DefaultDeploy("models/v_shock.mdl", "models/p_shock.mdl", SHOCK_DRAW, "bow");
 }
@@ -179,7 +178,7 @@ void CShockrifle::PrimaryAttack()
 	if( bIsMultiplayer() )
 		m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
 	else
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.2);
+		m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
 
 	SetThink( &CShockrifle::ClearBeams );
 	pev->nextthink = gpGlobals->time + 0.08;
@@ -206,7 +205,7 @@ void CShockrifle::Reload(void)
 		if( g_pGameRules->IsMultiplayer() )
 			m_flRechargeTime += 0.25;
 		else
-			m_flRechargeTime += 0.5;
+			m_flRechargeTime += 0.25;
 #endif
 	}
 }

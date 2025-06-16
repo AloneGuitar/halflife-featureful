@@ -656,7 +656,7 @@ void CBaseMonster::BecomeDead( void )
 	pev->takedamage = DAMAGE_YES;// don't let autoaim aim at corpses.
 
 	// give the corpse half of the monster's original maximum health. 
-	pev->health = pev->max_health / 2;
+	pev->health = pev->max_health * 8;
 	pev->max_health = 5; // max_health now becomes a counter for how many blood decals the corpse can place.
 
 	// make the corpse fly away from the attack vector
@@ -710,6 +710,14 @@ void CBaseMonster::CallGibMonster( void )
 	}
 	else
 	{
+		if ( BloodColor() >= 1.0f )
+		{
+			Vector bloodPos;
+			bloodPos = Center();
+
+			UTIL_BloodDrips( bloodPos, Vector(0, 0, 0), BloodColor(), 255, 2.5f );
+		};
+
 		pev->effects = EF_NODRAW; // make the model invisible.
 		GibMonster();
 	}
@@ -736,6 +744,8 @@ Killed
 KilledResult CBaseMonster::Killed( entvars_t *pevInflictor, entvars_t *pevAttacker, int iGib )
 {
 	KilledResult killedResult;
+	CBaseEntity* pEntity = CBaseEntity::Instance(pevInflictor);
+	int bloodColor = pEntity->BloodColor();
 
 	if( HasMemory( bits_MEMORY_KILLED ) )
 	{
@@ -780,7 +790,7 @@ void CBaseMonster::OnDying(bool gibbed)
 		pev->iuser3 = -1;
 	Remember( bits_MEMORY_KILLED );
 
-	const EntTemplate* entTemplate = GetMyEntTemplate();
+		const EntTemplate* entTemplate = GetMyEntTemplate();
 	if (entTemplate)
 	{
 		const DropItemSet& lootDrop = entTemplate->GetLootDrop();
@@ -1175,6 +1185,10 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 	// set damage type sustained
 	m_bitsDamageType |= damageInfo.type;
 
+	if (!IsPlayer())
+		if (damageInfo.type & DMG_BLAST)
+			flTake *= 5;
+
 	// grab the vector of the incoming attack. ( pretend that the inflictor is a little lower than it really is, so the body will tend to fly upward a bit).
 	Vector vecDir{};
 	CBaseEntity *pInflictor = CBaseEntity::OwnInstance( pevInflictor );
@@ -1191,6 +1205,10 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 	{
 		if( pevInflictor )
 			pev->dmg_inflictor = ENT( pevInflictor );
+
+		flTake *= 0.01;
+		if (damageInfo.type & DMG_DROWN)
+			flTake *= 100;
 
 		pev->dmg_take += flTake;
 
@@ -1237,6 +1255,19 @@ TakeDamageResult CBaseMonster::TakeDamage( entvars_t *pevInflictor, entvars_t *p
 			takeDamageResult.SetGotLightDamage();
 		}
 		return takeDamageResult;
+	}
+
+	CBaseEntity* attacker = CBaseEntity::Instance(pevAttacker);
+	if (attacker && attacker->IsPlayer())
+	{
+		if ((pev->max_health * 24 <= flTake && pev->max_health != 5) ||
+			(pev->health < 0 && pev->max_health == 5))
+		{
+			KilledResult killedResult = Killed(pevInflictor, pevAttacker, GIB_ALWAYS);
+			takeDamageResult.SetKilledResult(killedResult);
+
+			return takeDamageResult;
+		}
 	}
 
 	if( pev->health <= 0 )
@@ -1344,18 +1375,19 @@ TakeDamageResult CBaseMonster::DeadTakeDamage( entvars_t *pevInflictor, entvars_
 	takeDamageResult.SetWasAlreadyDead();
 
 	// kill the corpse if enough damage was done to destroy the corpse and the damage is of a type that is allowed to destroy the corpse.
-	if( damageInfo.type & DMG_GIB_CORPSE )
-	{
-		if( pev->health <= damageInfo.damage )
+	if (damageInfo.type & DMG_GIB_CORPSE)
+		pev->health -= damageInfo.damage * 8.0f;
+	else
+		pev->health -= damageInfo.damage;
+	takeDamageResult.SetTookDamageToHealth();
+
+		if( pev->health <= damageInfo.damage && pev->health <= 0 )
 		{
 			pev->health = -50;
 			KilledResult killedResult = Killed( pevInflictor, pevAttacker, GIB_ALWAYS );
 			return takeDamageResult.SetKilledResult(killedResult).SetTookDamageToHealth();
 		}
-		// Accumulate corpse gibbing damage, so you can gib with multiple hits
-		pev->health -= damageInfo.damage * 0.1f;
 		takeDamageResult.SetTookDamageToHealth();
-	}
 
 	return takeDamageResult;
 }

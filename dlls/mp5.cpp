@@ -59,15 +59,9 @@ void CMP5::Precache( void )
 	PRECACHE_MODEL( "models/w_9mmARclip.mdl" );
 	PRECACHE_SOUND( "items/9mmclip1.wav" );
 
-	PRECACHE_SOUND( "items/clipinsert1.wav" );
-	PRECACHE_SOUND( "items/cliprelease1.wav" );
-
 	PRECACHE_SOUND( "weapons/hks1.wav" );// H to the K
-	PRECACHE_SOUND( "weapons/hks2.wav" );// H to the K
-	PRECACHE_SOUND( "weapons/hks3.wav" );// H to the K
 
 	PRECACHE_SOUND( "weapons/glauncher.wav" );
-	PRECACHE_SOUND( "weapons/glauncher2.wav" );
 
 	m_usMP5 = PRECACHE_EVENT( 1, "events/mp5.sc" );
 	m_usMP52 = PRECACHE_EVENT( 1, "events/mp52.sc" );
@@ -97,14 +91,6 @@ bool CMP5::Deploy()
 
 void CMP5::PrimaryAttack()
 {
-	// don't fire underwater
-	if( m_pPlayer->pev->waterlevel == WL_Eyes )
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15f;
-		return;
-	}
-
 	if( !HasAmmoToFire() )
 	{
 		PlayEmptySound();
@@ -126,17 +112,17 @@ void CMP5::PrimaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 	// optimized multiplayer. Widened to make it easier to hit a moving player
-	const Vector vecSpread = bIsMultiplayer() ? VECTOR_CONE_6DEGREES : VECTOR_CONE_3DEGREES;
+	const Vector vecSpread = bIsMultiplayer() ? VECTOR_CONE_4DEGREES : VECTOR_CONE_2DEGREES;
 	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, vecSpread, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usMP5, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	CheckOutOfAmmo();
 
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.1f );
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.07f );
 
 	if( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.07f;
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
@@ -177,7 +163,7 @@ void CMP5::SecondaryAttack( void )
 					gpGlobals->v_forward * 800.0f );
 #endif
 
-	PLAYBACK_EVENT( PlaybackFlags(), m_pPlayer->edict(), m_usMP52 );
+	PLAYBACK_EVENT(PlaybackFlags(), m_pPlayer->edict(), m_usMP52);
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( 1.0f );
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0f;

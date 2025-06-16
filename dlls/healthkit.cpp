@@ -351,7 +351,7 @@ void CWallCharger::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 		return;
 
 	// govern the rate of charge
-	m_flNextCharge = gpGlobals->time + 0.1f;
+	m_flNextCharge = gpGlobals->time + 0.01f;
 
 	// charge the player
 	if( GiveCharge(pActivator) )
@@ -893,7 +893,7 @@ void CWallHealthDecay::Use(CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TY
 	}
 
 	// govern the rate of charge
-	m_flNextCharge = gpGlobals->time + 0.1f;
+	m_flNextCharge = gpGlobals->time + 0.01f;
 }
 
 void CWallHealthDecay::Recharge( void )

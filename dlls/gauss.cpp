@@ -39,7 +39,7 @@ float CGauss::GetFullChargeTime( void )
 		return 1.5f;
 	}
 
-	return 4.0f;
+	return 1.5f;
 }
 
 #if CLIENT_DLL
@@ -289,11 +289,11 @@ void CGauss::StartFire( void )
 
 	if( gpGlobals->time - m_pPlayer->m_flStartCharge > GetFullChargeTime() )
 	{
-		flDamage = 200.0f;
+		flDamage = gSkillData.plrDmgGauss * 2.5f;
 	}
 	else
 	{
-		flDamage = 200.0f * ( ( gpGlobals->time - m_pPlayer->m_flStartCharge ) / GetFullChargeTime() );
+		flDamage = gSkillData.plrDmgGauss * 1.5f * ( ( gpGlobals->time - m_pPlayer->m_flStartCharge ) / GetFullChargeTime() );
 	}
 
 	if( m_fPrimaryFire )
@@ -314,13 +314,7 @@ void CGauss::StartFire( void )
 
 		if( !m_fPrimaryFire )
 		{
-			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * flDamage * 5.0f;
-		}
-
-		if( !g_pGameRules->IsMultiplayer() )
-		{
-			// in deathmatch, gauss can pop you up into the air. Not in single play.
-			m_pPlayer->pev->velocity.z = flZVel;
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * flDamage * 2.0f;
 		}
 #endif
 		// player "shoot" animation
@@ -395,7 +389,7 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 		{
 			if( pEntity->pev == m_pPlayer->pev )
 				tr.iHitgroup = 0;
-			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_BULLET}, vecDir, &tr );
+			pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_ENERGYBEAM}, vecDir, &tr );
 		}
 
 		if( pEntity->ReflectGauss() )
@@ -437,8 +431,6 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 				fHasPunched = 1;
 
 				// try punching through wall if secondary attack (primary is incapable of breaking through)
-				if( !m_fPrimaryFire )
-				{
 					UTIL_TraceLine( tr.vecEndPos + vecDir * 8, vecDest, dont_ignore_monsters, pentIgnore, &beam_tr );
 					if( !beam_tr.fAllSolid )
 					{
@@ -487,14 +479,6 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 						 //ALERT( at_console, "blocked %f\n", n );
 						flDamage = 0;
 					}
-				}
-				else
-				{
-					//ALERT( at_console, "blocked solid\n" );
-
-					flDamage = 0;
-				}
-
 			}
 		}
 		else

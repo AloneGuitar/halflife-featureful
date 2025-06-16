@@ -64,9 +64,7 @@ void CPython::Precache( void )
 	PRECACHE_MODEL( "models/w_357ammobox.mdl" );
 	PRECACHE_SOUND( "items/9mmclip1.wav" );
 
-	PRECACHE_SOUND( "weapons/357_reload1.wav" );
 	PRECACHE_SOUND( "weapons/357_shot1.wav" );
-	PRECACHE_SOUND( "weapons/357_shot2.wav" );
 
 	m_usFirePython = PRECACHE_EVENT( 1, "events/python.sc" );
 }
@@ -93,25 +91,59 @@ void CPython::Holster()
 
 void CPython::SecondaryAttack( void )
 {
-	if( !bIsMultiplayer() )
+	// don't fire underwater
+	if (m_pPlayer->pev->waterlevel == WL_Eyes)
 	{
+		PlayEmptySound();
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15f;
 		return;
 	}
 
-	if( m_pPlayer->pev->fov != 0 )
+	if (!HasAmmoToFire())
 	{
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
-	}
-	else if( m_pPlayer->pev->fov != 40 )
-	{
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 40;
+		if (m_fFireOnEmpty)
+		{
+			PlayEmptySound();
+			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15f;
+		}
+
+		return;
 	}
 
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
+	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+
+	SpendAmmo();
+
+	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
+
+	Vector vecDir;
+	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+
+	PLAYBACK_EVENT_FULL(PlaybackFlags(), m_pPlayer->edict(), m_usFirePython, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0);
+
+	CheckOutOfAmmo();
+
+	m_flNextPrimaryAttack = 0.15f;
+	m_flNextSecondaryAttack = 0.15f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 10.0f, 15.0f);
 }
 
 void CPython::PrimaryAttack()
 {
+	if (m_pPlayer->m_afButtonLast & IN_ATTACK)
+	{
+		return;
+	}
+
 	// don't fire underwater
 	if( m_pPlayer->pev->waterlevel == WL_Eyes )
 	{
@@ -143,17 +175,26 @@ void CPython::PrimaryAttack()
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
 
+	float flSpread = 0.001;
+
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector(flSpread, flSpread, flSpread), 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
-	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usFirePython, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	int flags;
+#if CLIENT_WEAPONS
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFirePython, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	CheckOutOfAmmo();
 
-	m_flNextPrimaryAttack = 0.75f;
+	m_flNextPrimaryAttack = 0.15f;
+	m_flNextSecondaryAttack = 0.15f;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );
 }
 

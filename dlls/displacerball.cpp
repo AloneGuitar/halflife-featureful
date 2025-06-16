@@ -10,6 +10,7 @@
 #include "displacerball.h"
 #include "scripted.h"
 #include "visuals_utils.h"
+#include "global_models.h"
 
 #if FEATURE_DISPLACER
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
@@ -118,7 +119,7 @@ void CDisplacerBall::FlyThink()
 void CDisplacerBall::ArmBeam( int iSide )
 {
 	//This method is identical to the Alien Slave's ArmBeam, except it treats m_pBeam as a circular buffer.
-	if( m_iBeams >= static_cast<int>(ARRAYSIZE(m_pBeam)) )
+	if (m_iBeams >= static_cast<int>(ARRAYSIZE(m_pBeam)))
 		m_iBeams = 0;
 
 	TraceResult tr;
@@ -183,7 +184,7 @@ void CDisplacerBall::SelfCreate(entvars_t *pevOwner,Vector vecStart)
 	pSelf->Circle();
 	pSelf->SetTouch( NULL );
 	pSelf->SetThink(&CDisplacerBall::KillThink);
-	pSelf->pev->nextthink = gpGlobals->time + ( g_pGameRules->IsMultiplayer() ? 0.2f : 0.5f );
+	pSelf->pev->nextthink = gpGlobals->time + ( g_pGameRules->IsMultiplayer() ? 0.1f : 0.1f );
 }
 
 void CDisplacerBall::BallTouch(CBaseEntity *pOther)
@@ -258,7 +259,7 @@ void CDisplacerBall::BallTouch(CBaseEntity *pOther)
 	UTIL_SetOrigin(pev, pev->origin);
 
 	SetThink(&CDisplacerBall::KillThink);
-	pev->nextthink = gpGlobals->time + ( g_pGameRules->IsMultiplayer() ? 0.2f : 0.5f );
+	pev->nextthink = gpGlobals->time + ( g_pGameRules->IsMultiplayer() ? 0.1f : 0.1f );
 }
 
 void CDisplacerBall::Circle( void )
@@ -268,7 +269,7 @@ void CDisplacerBall::Circle( void )
 	{
 		MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pev->origin);
 			WRITE_BYTE(TE_BEAMCYLINDER);
-			WRITE_CIRCLE(pev->origin, 800.0f);
+			WRITE_CIRCLE(pev->origin, 1600.0f);
 			WriteBeamVisual(visual);
 		MESSAGE_END();
 	}
@@ -298,6 +299,15 @@ void CDisplacerBall::ExplodeThink( void )
 	pev->effects |= EF_NODRAW;
 
 	EmitSoundScript(explodeSoundScript);
+
+	MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, pev->origin);
+	WRITE_BYTE(TE_EXPLOSION);
+	WRITE_VECTOR(pev->origin);
+	WRITE_SHORT(g_sModelIndexFireball);
+	WRITE_BYTE(250); // scale * 10
+	WRITE_BYTE(15); // framerate
+	WRITE_BYTE(TE_EXPLFLAG_NOSOUND);
+	MESSAGE_END();
 
 	CBaseEntity* pAttacker = CBaseEntity::Instance( pev->owner );
 	pev->owner = NULL;

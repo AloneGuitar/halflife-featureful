@@ -80,7 +80,7 @@ bool CBasePlayerWeapon::DefaultReload( int iClipSize, int iAnim, float fDelay, i
 
 bool CBasePlayerWeapon::DefaultClipReload(int iAnim, float fDelay, int body)
 {
-	return DefaultReload(m_iMaxClip, iAnim, fDelay, body);
+	return DefaultReload(m_iMaxClip, iAnim, fDelay * 0.5f, body);
 }
 
 void CBasePlayerWeapon::ResetEmptySound( void )

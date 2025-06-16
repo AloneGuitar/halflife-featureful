@@ -243,10 +243,7 @@ void CBarnacleGrapple::Precache( void )
 	PRECACHE_SOUND( "weapons/bgrapple_cough.wav" );
 	PRECACHE_SOUND( "weapons/bgrapple_pull.wav" );
 	PRECACHE_SOUND( "weapons/bgrapple_wait.wav" );
-	PRECACHE_SOUND( "weapons/alienweap_draw.wav" );
 	PRECACHE_SOUND( "barnacle/bcl_chew1.wav" );
-	PRECACHE_SOUND( "barnacle/bcl_chew2.wav" );
-	PRECACHE_SOUND( "barnacle/bcl_chew3.wav" );
 
 	PRECACHE_MODEL( "sprites/tongue.spr" );
 
@@ -478,7 +475,7 @@ void CBarnacleGrapple::PrimaryAttack( void )
 		}
 		else
 		{
-			m_flShootTime = gpGlobals->time + 0.35;
+			m_flShootTime = gpGlobals->time;
 		}
 #endif
 		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/bgrapple_fire.wav", 0.98, ATTN_NORM, 0, 125 );
@@ -542,24 +539,14 @@ void CBarnacleGrapple::PrimaryAttack( void )
 						{
 							float flDamage = gSkillData.plrDmgGrapple;
 
-							if( g_pGameRules->IsMultiplayer() )
-							{
-								flDamage *= 2;
-							}
+							flDamage *= 2;
 
 							pHit->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr );
 
 							m_flDamageTime = gpGlobals->time;
 
-							const char* pszSample;
+							const char* pszSample = "barnacle/bcl_chew1.wav";
 
-							switch( RANDOM_LONG( 0, 2 ) )
-							{
-							default:
-							case 0: pszSample = "barnacle/bcl_chew1.wav"; break;
-							case 1: pszSample = "barnacle/bcl_chew2.wav"; break;
-							case 2: pszSample = "barnacle/bcl_chew3.wav"; break;
-							}
 							EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_VOICE, pszSample, VOL_NORM, ATTN_NORM, 0, 125 );
 						}
 					}

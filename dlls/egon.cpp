@@ -99,8 +99,8 @@ bool CEgon::GetItemInfo( ItemInfo *p )
 	return true;
 }
 
-#define EGON_PULSE_INTERVAL		0.1
-#define EGON_DISCHARGE_INTERVAL		0.1
+#define EGON_PULSE_INTERVAL		0.02
+#define EGON_DISCHARGE_INTERVAL		0.02
 
 float CEgon::GetPulseInterval( void )
 {
@@ -275,7 +275,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				if( gpGlobals->time >= m_flAmmoUseTime )
 				{
 					UseAmmo( 1 );
-					m_flAmmoUseTime = gpGlobals->time + 0.166f;
+					m_flAmmoUseTime = gpGlobals->time + 0.02f;
 				}
 			}
 
@@ -294,11 +294,8 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				pEntity->ApplyTraceAttack( m_pPlayer->pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide, DMG_ENERGYBEAM).SetGibPolicy(GIB_ALWAYS), vecDir, &tr);
 			}
 
-			if( g_pGameRules->IsMultiplayer() )
-			{
-				// radius damage a little more potent in multiplayer.
-				::RadiusDamage( tr.vecEndPos, pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide * 0.25f, DMG_ENERGYBEAM | DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
-			}
+			// radius damage a little more potent in multiplayer.
+			::RadiusDamage( tr.vecEndPos, pev, m_pPlayer->pev, DamageInfo(gSkillData.plrDmgEgonWide * 0.25f, DMG_ENERGYBEAM | DMG_BLAST).SetGibPolicy(GIB_ALWAYS), 128, CLASS_NONE );
 
 			if( !m_pPlayer->IsAlive() )
 				return;
@@ -319,7 +316,7 @@ void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
 				if( gpGlobals->time >= m_flAmmoUseTime )
 				{
 					UseAmmo( 1 );
-					m_flAmmoUseTime = gpGlobals->time + 0.1f;
+					m_flAmmoUseTime = gpGlobals->time + 0.04f;
 				}
 			}
 

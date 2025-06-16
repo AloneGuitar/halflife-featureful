@@ -299,7 +299,7 @@ void CHalfLifeRules::PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerWeapon *p
 //
 bool CHalfLifeRules::PlayerCanDropWeapon(CBasePlayer *pPlayer)
 {
-	return false;
+	return true;
 }
 
 //=========================================================

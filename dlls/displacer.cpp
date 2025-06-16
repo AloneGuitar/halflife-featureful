@@ -148,7 +148,7 @@ void CDisplacer::PrimaryAttack()
 	m_iFireMode = FIREMODE_FORWARD;
 
 	SetThink (&CDisplacer::SpinUp);
-	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.6;
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.2;
 	pev->nextthink = gpGlobals->time;
 }
 
@@ -234,7 +234,7 @@ void CDisplacer::Displace( void )
 	vecSrc += gpGlobals->v_right	* 8;
 	vecSrc += gpGlobals->v_up		* -12;
 
-	CDisplacerBall::Shoot( m_pPlayer->pev, vecSrc, gpGlobals->v_forward * CDisplacerBall::BallSpeed(), m_pPlayer->pev->v_angle );
+	CDisplacerBall::Shoot( m_pPlayer->pev, vecSrc, gpGlobals->v_forward * 4.0f * CDisplacerBall::BallSpeed(), m_pPlayer->pev->v_angle );
 
 	SetThink( NULL );
 #endif

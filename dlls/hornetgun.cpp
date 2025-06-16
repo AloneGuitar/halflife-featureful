@@ -145,11 +145,11 @@ void CHgun::PrimaryAttack()
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	m_flNextPrimaryAttack = m_flNextPrimaryAttack + 0.25f;
+	m_flNextPrimaryAttack = m_flNextPrimaryAttack + 0.18f;
 
 	if( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
 	{
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.18f;
 	}
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );

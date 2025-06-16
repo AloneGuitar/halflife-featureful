@@ -167,8 +167,8 @@ bool CPipeWrench::Swing(bool fFirst)
 	{
 		// miss
 		if ( fFirst ) {
-			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.7f;
-			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.7f;
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5f;
+			m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5f;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;
 			// player "shoot" animation
 			m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -212,15 +212,15 @@ bool CPipeWrench::Swing(bool fFirst)
 #endif
 			{
 				// first swing does full damage
-				flDamage = gSkillData.plrDmgPWrench;
+				flDamage = gSkillData.plrDmgPWrench * 2.0f;
 			}
 			else
 			{
 				// subsequent swings do half
-				flDamage = gSkillData.plrDmgPWrench * 0.5f;
+				flDamage = gSkillData.plrDmgPWrench * 2.0f;
 			}
 			// Send trace attack to player.
-			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr);
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_ENERGYBEAM}, gpGlobals->v_forward, &tr);
 
 			if ( pEntity->HasFlesh() )
 			{
@@ -343,11 +343,9 @@ void CPipeWrench::BigSwing(void)
 
 		if( pEntity )
 		{
-			float flDamage = (gpGlobals->time - m_flBigSwingStart) * gSkillData.plrDmgPWrench + 25.0f;
-			if (flDamage > 150.0f) {
-				flDamage = 150.0f;
-			}
-			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_CLUB}, gpGlobals->v_forward, &tr);
+			float flDamage = gSkillData.plrDmgPWrench  * 10.0f;
+
+			pEntity->ApplyTraceAttack(m_pPlayer->pev, m_pPlayer->pev, DamageInfo{flDamage, DMG_ENERGYBEAM}, gpGlobals->v_forward, &tr);
 		}
 
 		// play thwack, smack, or dong sound

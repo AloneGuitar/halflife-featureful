@@ -53,16 +53,6 @@ void CUzi::Precache( void )
 	PRECACHE_SOUND( "items/9mmclip1.wav" );
 
 	PRECACHE_SOUND( "weapons/uzi/shoot1.wav" );
-	PRECACHE_SOUND( "weapons/uzi/shoot2.wav" );
-	PRECACHE_SOUND( "weapons/uzi/shoot3.wav" );
-
-	PRECACHE_SOUND( "weapons/uzi/reload1.wav" );
-	PRECACHE_SOUND( "weapons/uzi/reload2.wav" );
-	PRECACHE_SOUND( "weapons/uzi/reload3.wav" );
-
-	PRECACHE_SOUND( "weapons/uzi/deploy.wav" );
-	PRECACHE_SOUND( "weapons/uzi/deploy1.wav" );
-	PRECACHE_SOUND( "weapons/uzi/akimbo_pull2.wav" );
 
 	m_usUzi = PRECACHE_EVENT( 1, "events/uzi.sc" );
 }
@@ -88,22 +78,14 @@ bool CUzi::Deploy()
 	int r = DefaultDeploy( "models/v_uzi.mdl", "models/p_uzi.mdl", UZI_DEPLOY, "mp5" );
 	if (r)
 	{
-		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.2;
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.1;
 	}
 	return r;
 }
 
 void CUzi::PrimaryAttack()
 {
-	// don't fire underwater
-	if( m_pPlayer->pev->waterlevel == WL_Eyes )
-	{
-		PlayEmptySound();
-		m_flNextPrimaryAttack = 0.15;
-		return;
-	}
-
-	if( !HasAmmoToFire() )
+	if( !HasAmmoToFire(2) )
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = 0.15;
@@ -113,7 +95,7 @@ void CUzi::PrimaryAttack()
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 
-	SpendAmmo();
+	SpendAmmo(2);
 
 	m_pPlayer->pev->effects = (int)( m_pPlayer->pev->effects ) | EF_MUZZLEFLASH;
 
@@ -123,16 +105,16 @@ void CUzi::PrimaryAttack()
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 	// single player spread
-	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_UZI, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	Vector vecDir = m_pPlayer->FireBulletsPlayer( 2, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_UZI, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	PLAYBACK_EVENT_FULL( PlaybackFlags(), m_pPlayer->edict(), m_usUzi, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	CheckOutOfAmmo();
 
-	m_flNextPrimaryAttack = GetNextAttackDelay( 0.1 );
+	m_flNextPrimaryAttack = GetNextAttackDelay( 0.06 );
 
 	if( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.06;
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
