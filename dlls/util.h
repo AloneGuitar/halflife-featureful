@@ -311,7 +311,7 @@ extern bool			UTIL_IsPlayerReference(const char* name);
 extern bool			UTIL_TargetnameIsActivator( const char* targetName );
 extern bool			UTIL_TargetnameIsActivator( string_t targetName );
 extern void			UTIL_BloodStream( const Vector &origin, const Vector &direction, int color, int amount );
-extern void			UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount );
+extern void			UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount, float scale_mult = 1.0f );
 extern Vector		UTIL_RandomBloodVector( void );
 extern bool			UTIL_ShouldShowBlood( int bloodColor );
 extern void			UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor );
