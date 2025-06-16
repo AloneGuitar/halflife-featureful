@@ -710,10 +710,9 @@ void CBaseMonster::CallGibMonster( void )
 		if ( BloodColor() >= 1.0f )
 		{
 			Vector bloodPos;
-			Vector bloodAngles;
+			bloodPos = Center();
 
-			GetBonePosition( 0, bloodPos, bloodAngles );
-			UTIL_BloodDrips( bloodPos, bloodAngles, BloodColor(), 255, 2.5f );
+			UTIL_BloodDrips( bloodPos, Vector(0, 0, 0), BloodColor(), 255, 2.5f);
 		};
 
 		pev->effects = EF_NODRAW; // make the model invisible.
